@@ -24,47 +24,68 @@ h1{
 
 h2{
   font-size:25px;
-  margin:24px 0 14px;
+  margin:22px 0 14px;
   font-weight:850;
 }
 
+h3{
+  margin:8px 0 10px;
+}
+
 .card{
+  background:#fff;
+  padding:16px;
+  border-radius:22px;
+  margin:12px 0;
+  box-shadow:0 6px 18px rgba(0,0,0,.06);
+}
+
+.card:first-of-type{
+  background:linear-gradient(135deg,#111,#333);
+  color:white;
+}
+
+.card:first-of-type button{
   background:white;
-  padding:18px;
-  border-radius:28px;
-  margin:14px 0;
-  box-shadow:0 8px 26px rgba(0,0,0,.07);
+  color:#111;
 }
 
 input,
 textarea,
 select{
   width:100%;
-  padding:15px;
-  margin:8px 0;
-  border-radius:18px;
-  border:1px solid #e4d8ca;
+  box-sizing:border-box;
+  padding:14px;
+  margin:7px 0;
+  border-radius:16px;
+  border:1px solid #e6dccf;
+  background:#f8f5ef;
   font-size:16px;
-  background:#fff;
+  outline:none;
 }
 
 textarea{
-  min-height:90px;
+  min-height:86px;
+  resize:none;
+}
+
+input[type="file"]{
+  background:#f8f5ef;
 }
 
 button{
   border:0;
-  border-radius:999px;
-  padding:13px 18px;
+  border-radius:20px;
+  padding:12px 16px;
   background:#111;
-  color:#fff;
-  font-weight:800;
+  color:white;
+  font-weight:700;
   font-size:15px;
   margin:6px 4px 6px 0;
 }
 
 .light{
-  background:#fff;
+  background:white;
   color:#111;
   border:1px solid #e0d3c4;
 }
@@ -74,57 +95,98 @@ button{
   font-size:13px;
 }
 
+.card:first-of-type .muted{
+  color:#ddd;
+}
+
+.card p{
+  font-size:16px;
+  margin:6px 0;
+  line-height:1.35;
+}
+
 img{
   width:100%;
-  border-radius:22px;
-  margin-top:12px;
+  border-radius:18px;
+  margin-top:10px;
+  display:block;
 }
 
 .hidden{
   display:none!important;
 }
 
-/* barre du bas plus propre */
+/* Navigation bas */
 .tabs{
   position:fixed;
+  bottom:12px;
   left:50%;
-  bottom:14px;
   transform:translateX(-50%);
-  width:calc(100% - 24px);
-  max-width:540px;
-  background:rgba(255,255,255,.96);
+  width:95%;
+  max-width:520px;
+  background:white;
+  border-radius:30px;
+  padding:8px;
   display:flex;
-  gap:6px;
   justify-content:space-around;
-  padding:10px;
-  border-radius:34px;
-  box-shadow:0 12px 35px rgba(0,0,0,.14);
+  gap:6px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
   overflow-x:auto;
+  z-index:999;
 }
 
 .tabs button{
-  background:#111;
-  color:#fff;
-  min-width:58px;
-  height:58px;
-  border-radius:50%;
-  font-size:11px;
-  padding:6px;
+  background:#f2efe9;
+  color:#111;
+  border-radius:14px;
+  min-width:50px;
+  height:50px;
+  padding:4px;
   margin:0;
+  font-size:10px;
+  line-height:1.15;
 }
 
-/* meilleure présentation des formulaires */
-input[type="file"]{
-  background:#faf7f2;
+/* Chat */
+#msgs{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
-/* mode grands-parents */
+/* Mode grands-parents */
 .big{
   font-size:22px;
 }
 
 .big input,
 .big textarea,
+.big select,
 .big button{
   font-size:20px;
+}
+
+@media(max-width:430px){
+  .app{
+    padding:14px 12px 115px;
+  }
+
+  h1{
+    font-size:38px;
+  }
+
+  h2{
+    font-size:24px;
+  }
+
+  .tabs{
+    width:96%;
+    padding:7px;
+  }
+
+  .tabs button{
+    min-width:47px;
+    height:47px;
+    font-size:9px;
+  }
 }
