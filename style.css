@@ -9,12 +9,14 @@ body{
   color:#111;
 }
 
+/* CONTAINER */
 .app{
   max-width:520px;
   margin:auto;
   padding:20px 14px 120px;
 }
 
+/* TITRES */
 h1{
   font-size:42px;
   margin:14px 0 22px;
@@ -32,6 +34,7 @@ h3{
   margin:8px 0 10px;
 }
 
+/* CARTES */
 .card{
   background:#fff;
   padding:16px;
@@ -40,6 +43,7 @@ h3{
   box-shadow:0 8px 24px rgba(0,0,0,.06);
 }
 
+/* HEADER GROUPE */
 .group-card{
   background:linear-gradient(135deg,#111,#2b2b2b);
   color:#fff;
@@ -71,6 +75,7 @@ h3{
   margin:0;
 }
 
+/* INPUTS */
 input,
 textarea,
 select{
@@ -93,6 +98,7 @@ input[type="file"]{
   background:#faf7f1;
 }
 
+/* BOUTONS */
 button{
   border:0;
   border-radius:999px;
@@ -110,6 +116,7 @@ button{
   border:1px solid #e5d9cb;
 }
 
+/* TEXTE */
 .muted{
   color:#777;
   font-size:13px;
@@ -121,6 +128,7 @@ button{
   margin:6px 0;
 }
 
+/* IMAGES */
 img{
   width:100%;
   border-radius:20px;
@@ -128,66 +136,83 @@ img{
   display:block;
 }
 
+/* HIDDEN */
 .hidden{
   display:none!important;
 }
 
-/* Barre du bas */
-/* Barre du bas style app moderne */
+/* 🔥 NAVBAR MODERNE */
 .tabs{
   position:fixed;
   left:50%;
-  bottom:18px;
+  bottom:14px;
   transform:translateX(-50%);
-  width:calc(100% - 28px);
+  width:calc(100% - 24px);
   max-width:520px;
-  height:76px;
   background:rgba(255,255,255,.96);
   backdrop-filter:blur(16px);
   display:flex;
-  justify-content:space-around;
+  justify-content:space-between;
   align-items:center;
   gap:6px;
-  padding:10px 12px;
-  border-radius:28px;
-  box-shadow:0 14px 35px rgba(0,0,0,.18);
-  z-index:999;
+  padding:10px;
+  border-radius:30px;
+  box-shadow:0 12px 35px rgba(0,0,0,.16);
   overflow-x:auto;
+  z-index:999;
 }
 
+/* BOUTONS NAV */
 .tabs button{
-  background:transparent;
-  color:#777;
-  border:0;
+  position:relative;
+  background:#f2eee7;
+  color:#111;
   min-width:54px;
-  height:54px;
+  height:52px;
   border-radius:18px;
-  padding:6px 8px;
+  padding:5px;
   margin:0;
   font-size:10px;
   line-height:1.15;
   font-weight:700;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
 }
 
-.tabs button:hover,
-.tabs button:focus{
+/* ONGLET ACTIF */
+.tabs button.active{
   background:#f3eaff;
   color:#9b2cff;
-  outline:none;
 }
 
-.tabs button:first-child{
-  background:#f3eaff;
-  color:#9b2cff;
+/* BADGE ROUGE */
+.badge{
+  position:absolute;
+  top:4px;
+  right:6px;
+  min-width:16px;
+  height:16px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#ff2d55;
+  color:white;
+  font-size:10px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
-/* Chat */
+
+/* CHAT */
 #msgs{
   display:flex;
   flex-direction:column;
   gap:8px;
 }
 
-/* Mode grands-parents */
+/* MODE GRANDS PARENTS */
 .big{
   font-size:22px;
 }
@@ -199,6 +224,7 @@ img{
   font-size:20px;
 }
 
+/* RESPONSIVE */
 @media(max-width:430px){
   .app{
     padding:16px 12px 115px;
