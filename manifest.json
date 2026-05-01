@@ -1,0 +1,15 @@
+{
+  "name": "Famille+",
+  "short_name": "Famille+",
+  "start_url": "/famille-plus/",
+  "display": "standalone",
+  "background_color": "#f6efe6",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1029/1029183.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
