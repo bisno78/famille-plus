@@ -153,11 +153,12 @@ function render(){
 
 function groupHeader(){
   return `
-    <div class="card">
-      <b>Groupe actif :</b><br>
-      ${group || "Aucun groupe"}
-      <br>
-      <button class="light" onclick="nav('profile')">Changer</button>
+    <div class="group-card">
+      <div>
+        <span>Groupe actif</span>
+        <strong>${group || "Aucun groupe"}</strong>
+      </div>
+      <button onclick="nav('profile')">Changer</button>
     </div>
   `;
 }
