@@ -467,8 +467,7 @@ function chat(){
     <div id="msgs"></div>
 
     <div class="card">
-      <input id="msg" placeholder="Message ou emoji 😊">
-      <input id="msgImg" type="file" accept="image/*">
+      <input id="msg" placeholder="Message 😊">
       <button onclick="sendMsg()">Envoyer</button>
     </div>
   `;
@@ -477,21 +476,32 @@ function chat(){
   .where("groupId","==",group)
   .onSnapshot(s=>{
     let html = "";
-    s.docs.sort((a,b)=>a.data().createdAt-b.data().createdAt).forEach(d=>{
-      const m = d.data();
-      html += `
-        <div class="card">
-          <b>${clean(m.user)}</b>
-          <p>${clean(m.text)}</p>
-          ${m.image ? `<img src="${m.image}">` : ""}
-          <span class="muted">${m.type}</span>
-        </div>
-      `;
-    });
-    msgs.innerHTML = html || "<p>Aucun message</p>";
-  });
-}
 
+    s.docs
+    .sort((a,b)=>a.data().createdAt - b.data().createdAt)
+    .forEach(d=>{
+      const m = d.data();
+      const mine = m.userId === user.uid;
+
+      html += `
+      <div style="
+        display:flex;
+        justify-content:${mine ? "flex-end" : "flex-start"};
+        margin:6px 0;
+      ">
+        <div style="
+          max-width:70%;
+          padding:12px;
+          border-radius:18px;
+          background:${mine ? "#111" : "#fff"};
+          color:${mine ? "#fff" : "#111"};
+          box-shadow:0 2px 8px rgba(0,0,0,0.05);
+        ">
+          <b style="font-size:12px;">
+            ${mine ? "Moi" : clean(m.user)}
+          </b>
+
+          <p
 async function sendMsg(customText="", customType="text"){
   let img = "";
   if(document.getElementById("msgImg") && msgImg.files[0]){
