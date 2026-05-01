@@ -501,7 +501,23 @@ function chat(){
             ${mine ? "Moi" : clean(m.user)}
           </b>
 
-          <p
+          <p style="margin:6px 0;">
+            ${clean(m.text || "")}
+          </p>
+
+          ${m.image ? `<img src="${m.image}" style="width:100%;border-radius:10px;">` : ""}
+
+          <span style="font-size:10px;opacity:0.6;">
+            ${new Date(m.createdAt).toLocaleTimeString()}
+          </span>
+        </div>
+      </div>
+      `;
+    });
+
+    msgs.innerHTML = html || "<p>Aucun message</p>";
+  });
+}
 async function sendMsg(customText="", customType="text"){
   let img = "";
   if(document.getElementById("msgImg") && msgImg.files[0]){
