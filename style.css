@@ -133,36 +133,53 @@ img{
 }
 
 /* Barre du bas */
+/* Barre du bas style app moderne */
 .tabs{
   position:fixed;
   left:50%;
-  bottom:14px;
+  bottom:18px;
   transform:translateX(-50%);
-  width:calc(100% - 24px);
+  width:calc(100% - 28px);
   max-width:520px;
-  background:#fff;
+  height:76px;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(16px);
   display:flex;
-  justify-content:space-between;
+  justify-content:space-around;
+  align-items:center;
   gap:6px;
-  padding:9px;
-  border-radius:30px;
-  box-shadow:0 12px 35px rgba(0,0,0,.16);
-  overflow-x:auto;
+  padding:10px 12px;
+  border-radius:28px;
+  box-shadow:0 14px 35px rgba(0,0,0,.18);
   z-index:999;
+  overflow-x:auto;
 }
 
 .tabs button{
-  background:#f2eee7;
-  color:#111;
+  background:transparent;
+  color:#777;
+  border:0;
   min-width:54px;
-  height:52px;
+  height:54px;
   border-radius:18px;
-  padding:5px;
+  padding:6px 8px;
   margin:0;
   font-size:10px;
   line-height:1.15;
+  font-weight:700;
 }
 
+.tabs button:hover,
+.tabs button:focus{
+  background:#f3eaff;
+  color:#9b2cff;
+  outline:none;
+}
+
+.tabs button:first-child{
+  background:#f3eaff;
+  color:#9b2cff;
+}
 /* Chat */
 #msgs{
   display:flex;
