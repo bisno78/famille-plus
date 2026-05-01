@@ -1,68 +1,169 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Famille+</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body{margin:0;font-family:Arial;background:#f6efe6;color:#111}
+    .app{max-width:520px;margin:auto;padding:16px}
+    h1{font-size:34px;margin:10px 0}
+    h2{margin-top:8px}
+    input,textarea,select{width:100%;box-sizing:border-box;padding:14px;margin:7px 0;border-radius:16px;border:1px solid #ddd;font-size:16px}
+    button{border:0;border-radius:999px;padding:13px 18px;margin:6px 4px;background:#111;color:white;font-weight:700}
+    .light{background:white;color:#111;border:1px solid #ddd}
+    .card{background:white;border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 4px 14px #0001}
+    .tabs{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:9px 0;border-top:1px solid #ddd}
+    .tabs button{background:white;color:#111;font-size:12px;padding:7px}
+    .bottom{height:80px}
+    .hidden{display:none}
+    img{max-width:100%;border-radius:18px;margin-top:8px}
+    .muted{color:#777;font-size:14px}
+    .big body,.big input,.big button,.big textarea{font-size:20px}
+    .badge{background:#111;color:white;border-radius:20px;padding:4px 10px;font-size:12px}
+  </style>
 </head>
 
-<body style="font-family: Arial; padding: 20px;">
+<body>
+<div class="app">
   <h1>Famille+</h1>
+  <div id="auth"></div>
+  <div id="main" class="hidden"></div>
+</div>
 
-  <input id="email" placeholder="Email"><br><br>
-  <input id="password" placeholder="Mot de passe" type="password"><br><br>
+<div id="tabs" class="tabs hidden">
+  <button onclick="show('home')">🏠 Accueil</button>
+  <button onclick="show('chat')">💬 Chat</button>
+  <button onclick="show('albums')">📸 Photos</button>
+  <button onclick="show('events')">📅 Events</button>
+  <button onclick="show('reviews')">⭐ Avis</button>
+  <button onclick="show('profile')">👤 Profil</button>
+</div>
 
-  <button onclick="register()">Créer compte</button>
-  <button onclick="login()">Connexion</button>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBhiLhzTpwfIJc7pNLuv1u5GpyLPtxKob4",
+  authDomain: "familyplus-6d726.firebaseapp.com",
+  projectId: "familyplus-6d726",
+  storageBucket: "familyplus-6d726.firebasestorage.app",
+  messagingSenderId: "908553231300",
+  appId: "1:908553231300:web:14a37471ade9ce397d2291"
+};
 
-  <hr>
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-  <input id="message" placeholder="Message"><br><br>
-  <button onclick="send()">Envoyer</button>
+let user=null, activeGroup=null, activeTab="home";
+let unsub=[];
 
-  <ul id="messages"></ul>
+function $(id){return document.getElementById(id)}
+function uid(){return Math.random().toString(36).slice(2,9).toUpperCase()}
+function now(){return Date.now()}
+function sortDocs(s){return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
+function clearSubs(){unsub.forEach(u=>u&&u());unsub=[]}
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhiLhzTpwfIJc7pNLuv1u5GpyLPtxKob4",
-      authDomain: "familyplus-6d726.firebaseapp.com",
-      projectId: "familyplus-6d726"
+async function imgToBase64(file){
+  return new Promise(res=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const c=document.createElement("canvas");
+        const max=900;
+        let w=img.width,h=img.height;
+        if(w>h&&w>max){h*=max/w;w=max}
+        if(h>=w&&h>max){w*=max/h;h=max}
+        c.width=w;c.height=h;
+        c.getContext("2d").drawImage(img,0,0,w,h);
+        res(c.toDataURL("image/jpeg",0.65));
+      };
+      img.src=e.target.result;
     };
+    r.readAsDataURL(file);
+  });
+}
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+auth.onAuthStateChanged(async u=>{
+  user=u;
+  if(!u){renderAuth();return}
+  await db.collection("users").doc(u.uid).set({
+    email:u.email,
+    name:u.displayName||u.email,
+    updatedAt:now()
+  },{merge:true});
+  activeGroup=localStorage.getItem("activeGroup");
+  $("auth").classList.add("hidden");
+  $("main").classList.remove("hidden");
+  $("tabs").classList.remove("hidden");
+  render();
+});
 
-    function register() {
-      auth.createUserWithEmailAndPassword(
-        email.value,
-        password.value
-      );
-    }
+function renderAuth(){
+  $("tabs").classList.add("hidden");
+  $("main").classList.add("hidden");
+  $("auth").classList.remove("hidden");
+  $("auth").innerHTML=`
+    <div class="card">
+      <h2>Connexion famille</h2>
+      <input id="email" placeholder="Email">
+      <input id="pass" placeholder="Mot de passe" type="password">
+      <button onclick="login()">Connexion</button>
+      <button class="light" onclick="register()">Créer compte</button>
+    </div>`;
+}
 
-    function login() {
-      auth.signInWithEmailAndPassword(
-        email.value,
-        password.value
-      );
-    }
+async function login(){await auth.signInWithEmailAndPassword(email.value,pass.value)}
+async function register(){await auth.createUserWithEmailAndPassword(email.value,pass.value)}
+function show(t){activeTab=t;render()}
 
-    function send() {
-      db.collection("messages").add({
-        text: message.value
-      });
-    }
+async function render(){
+  clearSubs();
+  if(!activeGroup && activeTab!="profile") return renderProfile();
+  if(activeTab=="home") renderHome();
+  if(activeTab=="chat") renderChat();
+  if(activeTab=="albums") renderAlbums();
+  if(activeTab=="events") renderEvents();
+  if(activeTab=="reviews") renderReviews();
+  if(activeTab=="profile") renderProfile();
+}
 
-    db.collection("messages").onSnapshot(snapshot => {
-      messages.innerHTML = "";
-      snapshot.forEach(doc => {
-        const li = document.createElement("li");
-        li.innerText = doc.data().text;
-        messages.appendChild(li);
-      });
-    });
-  </script>
-</body>
-</html>
+function groupHeader(){
+  return `<div class="card"><b>Groupe actif :</b> ${activeGroup||"Aucun"} <button class="light" onclick="show('profile')">Changer</button></div>`;
+}
+
+/* PROFIL / GROUPES */
+function renderProfile(){
+  $("main").innerHTML=`
+    <h2>Profil</h2>
+    <div class="card">
+      <p>${user.email}</p>
+      <button onclick="auth.signOut()">Déconnexion</button>
+      <button class="light" onclick="document.body.classList.toggle('big')">Mode grands-parents</button>
+    </div>
+
+    <div class="card">
+      <h3>Créer un groupe</h3>
+      <input id="gName" placeholder="Ex : Famille proche">
+      <button onclick="createGroup()">Créer</button>
+    </div>
+
+    <div class="card">
+      <h3>Rejoindre avec un code</h3>
+      <input id="gCode" placeholder="Code invitation">
+      <button onclick="joinGroup()">Rejoindre</button>
+    </div>
+
+    <h3>Mes groupes</h3>
+    <div id="groups"></div>
+    <div class="bottom"></div>`;
+
+  unsub.push(db.collection("groupMembers").where("userId","==",user.uid).onSnapshot(async s=>{
+    let html="";
+    for(const d of s.docs){
+      const m
