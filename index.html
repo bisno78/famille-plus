@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Famille+</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<style>
+body{margin:0;font-family:Arial;background:#f6efe6}
+.app{max-width:500px;margin:auto;padding:15px;padding-bottom:80px}
+h1{font-size:32px}
+input,textarea{width:100%;padding:12px;margin:6px 0;border-radius:14px;border:1px solid #ddd}
+button{padding:10px 14px;border-radius:20px;border:none;background:#111;color:#fff;margin:5px}
+.card{background:#fff;padding:15px;border-radius:20px;margin:10px 0}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;border-top:1px solid #ddd}
+.tabs button{background:none;color:#111;font-size:12px}
+</style>
+</head>
+
+<body>
+<div class="app">
+<h1>Famille+</h1>
+
+<div id="auth"></div>
+<div id="appContent" style="display:none"></div>
+
+</div>
+
+<div class="tabs" id="tabs" style="display:none">
+<button onclick="nav('home')">🏠</button>
+<button onclick="nav('chat')">💬</button>
+<button onclick="nav('event')">📅</button>
+<button onclick="nav('notif')">🔔</button>
+<button onclick="nav('profile')">👤</button>
+</div>
+
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyBhiLhzTpwfIJc7pNLuv1u5GpyLPtxKob4",
+authDomain:"familyplus-6d726.firebaseapp.com",
+projectId:"familyplus-6d726"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+let user=null;
+let group=null;
+let page="profile";
+
+auth.onAuthStateChanged(u=>{
+if(!u){loginUI();return;}
+user=u;
+document.getElementById("auth").style.display="none";
+document.getElementById("appContent").style.display="block";
+document.getElementById("tabs").style.display="flex";
+render();
+});
+
+function loginUI(){
+document.getElementById("auth").innerHTML=`
+<div class="card">
+<input id="mail" placeholder="email">
+<input id="pass" type="password" placeholder="password">
+<button onclick="login()">Connexion</button>
+<button onclick="register()">Créer</button>
+</div>`;
+}
+
+function login(){auth.signInWithEmailAndPassword(mail.value,pass.value);}
+function register(){auth.createUserWithEmailAndPassword(mail.value,pass.value);}
+
+function nav(p){page=p;render();}
+
+function render(){
+if(page==="home")home();
+if(page==="chat")chat();
+if(page==="event")eventUI();
+if(page==="notif")notifUI();
+if(page==="profile")profile();
+}
+
+/* PROFILE */
+
+function profile(){
+appContent.innerHTML=`
+<div class="card">
+<p>${user.email}</p>
+<button onclick="auth.signOut()">Logout</button>
+</div>
+
+<div class="card">
+<input id="gname" placeholder="Créer groupe">
+<button onclick="createGroup()">Créer</button>
+</div>
+
+<div class="card">
+<input id="gcode" placeholder="Code groupe">
+<button onclick="join()">Rejoindre</button>
+</div>
+
+<div id="groups"></div>
+`;
+
+db.collection("groups").get().then(s=>{
+let html="";
+s.forEach(d=>{
+html+=`<div class="card">
+${d.data().name}
+<button onclick="setGroup('${d.id}')">OK</button>
+</div>`;
+});
+groups.innerHTML=html;
+});
+}
+
+function createGroup(){
+db.collection("groups").add({name:gname.value});
+}
+
+function join(){
+alert("fonction simple pour test");
+}
+
+function setGroup(id){
+group=id;
+page="home";
+render();
+}
+
+/* HOME */
+
+function home(){
+appContent.innerHTML=`
+<div class="card">
+<textarea id="post"></textarea>
+<button onclick="addPost()">Post</button>
+</div>
+<div id="posts"></div>
+`;
+
+db.collection("posts").onSnapshot(s=>{
+let html="";
+s.forEach(d=>{
+let p=d.data();
+html+=`<div class="card">
+${p.text}
+</div>`;
+});
+posts.innerHTML=html;
+});
+}
+
+function addPost(){
+db.collection("posts").add({text:post.value});
+}
+
+/* CHAT */
+
+function chat(){
+appContent.innerHTML=`
+<div id="msgs"></div>
+<input id="msg">
+<button onclick="send()">Send</button>
+`;
+
+db.collection("chat").onSnapshot(s=>{
+let html="";
+s.forEach(d=>{
+html+=`<div class="card">${d.data().text}</div>`;
+});
+msgs.innerHTML=html;
+});
+}
+
+function send(){
+db.collection("chat").add({text:msg.value});
+}
+
+/* EVENTS */
+
+function eventUI(){
+appContent.innerHTML=`
+<div class="card">
+<input id="etitle">
+<button onclick="addEvent()">Créer</button>
+</div>
+<div id="events"></div>
+`;
+
+db.collection("events").onSnapshot(s=>{
+let html="";
+s.forEach(d=>{
+html+=`<div class="card">${d.data().title}</div>`;
+});
+events.innerHTML=html;
+});
+}
+
+function addEvent(){
+db.collection("events").add({title:etitle.value});
+}
+
+/* NOTIF */
+
+function notifUI(){
+appContent.innerHTML="<h2>Notifications</h2>";
+}
+</script>
+
+</body>
+</html>
