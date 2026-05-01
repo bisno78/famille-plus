@@ -5,66 +5,55 @@
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:#f4ecdf;
+  background:#f6efe6;
   color:#111;
 }
 
 .app{
-  max-width:520px;
-  margin:0 auto;
-  padding:18px 16px 110px;
+  max-width:560px;
+  margin:auto;
+  padding:18px 14px 120px;
 }
 
 h1{
   font-size:42px;
-  margin:18px 0 24px;
+  margin:16px 0 22px;
   font-weight:900;
-  letter-spacing:-1.5px;
+  letter-spacing:-2px;
 }
 
 h2{
-  font-size:26px;
+  font-size:25px;
   margin:24px 0 14px;
   font-weight:850;
 }
 
-h3{
-  margin:8px 0;
-}
-
 .card{
-  background:#fff;
+  background:white;
   padding:18px;
   border-radius:28px;
   margin:14px 0;
-  box-shadow:0 8px 25px rgba(0,0,0,.06);
+  box-shadow:0 8px 26px rgba(0,0,0,.07);
 }
 
 input,
 textarea,
 select{
   width:100%;
-  padding:15px 16px;
+  padding:15px;
   margin:8px 0;
   border-radius:18px;
-  border:1px solid #e3d8ca;
-  background:#fff;
+  border:1px solid #e4d8ca;
   font-size:16px;
-  outline:none;
+  background:#fff;
 }
 
 textarea{
-  min-height:92px;
-  resize:none;
-}
-
-input[type="file"]{
-  background:#faf7f1;
-  padding:14px;
+  min-height:90px;
 }
 
 button{
-  border:none;
+  border:0;
   border-radius:999px;
   padding:13px 18px;
   background:#111;
@@ -77,11 +66,11 @@ button{
 .light{
   background:#fff;
   color:#111;
-  border:1px solid #ddd0c0;
+  border:1px solid #e0d3c4;
 }
 
 .muted{
-  color:#7c7165;
+  color:#7b7168;
   font-size:13px;
 }
 
@@ -89,51 +78,27 @@ img{
   width:100%;
   border-radius:22px;
   margin-top:12px;
-  display:block;
 }
 
 .hidden{
   display:none!important;
 }
 
-/* Header groupe */
-.card:first-of-type{
-  background:#111;
-  color:#fff;
-}
-
-.card:first-of-type .light{
-  background:#fff;
-  color:#111;
-}
-
-/* Posts */
-.card b{
-  font-size:16px;
-}
-
-.card p{
-  font-size:17px;
-  line-height:1.35;
-}
-
-/* Navigation bas */
+/* barre du bas plus propre */
 .tabs{
   position:fixed;
-  bottom:14px;
   left:50%;
+  bottom:14px;
   transform:translateX(-50%);
   width:calc(100% - 24px);
-  max-width:520px;
+  max-width:540px;
   background:rgba(255,255,255,.96);
-  backdrop-filter:blur(14px);
   display:flex;
-  justify-content:space-around;
   gap:6px;
+  justify-content:space-around;
   padding:10px;
-  border-radius:32px;
-  box-shadow:0 10px 30px rgba(0,0,0,.12);
-  border:1px solid #eee0d0;
+  border-radius:34px;
+  box-shadow:0 12px 35px rgba(0,0,0,.14);
   overflow-x:auto;
 }
 
@@ -142,21 +107,18 @@ img{
   color:#fff;
   min-width:58px;
   height:58px;
-  padding:6px;
-  margin:0;
   border-radius:50%;
   font-size:11px;
-  line-height:1.15;
+  padding:6px;
+  margin:0;
 }
 
-/* Chat bulles déjà générées en inline */
-#msgs{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
+/* meilleure présentation des formulaires */
+input[type="file"]{
+  background:#faf7f2;
 }
 
-/* Mode grands-parents */
+/* mode grands-parents */
 .big{
   font-size:22px;
 }
@@ -165,20 +127,4 @@ img{
 .big textarea,
 .big button{
   font-size:20px;
-}
-
-@media(max-width:430px){
-  .app{
-    padding:14px 12px 105px;
-  }
-
-  h1{
-    font-size:38px;
-  }
-
-  .tabs button{
-    min-width:54px;
-    height:54px;
-    font-size:10px;
-  }
 }
