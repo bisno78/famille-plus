@@ -4,19 +4,23 @@ body{
   background:#f6efe6;
   color:#111;
 }
+
 .app{
   max-width:540px;
   margin:auto;
   padding:18px;
   padding-bottom:90px;
 }
+
 h1{
   font-size:38px;
   margin:20px 0;
 }
+
 h2{
   font-size:26px;
 }
+
 input,textarea,select{
   width:100%;
   box-sizing:border-box;
@@ -26,9 +30,11 @@ input,textarea,select{
   border:1px solid #ddd;
   font-size:16px;
 }
+
 textarea{
   min-height:80px;
 }
+
 button{
   padding:12px 18px;
   border-radius:28px;
@@ -38,11 +44,13 @@ button{
   font-weight:bold;
   margin:6px 4px;
 }
+
 .light{
   background:white;
   color:#111;
   border:1px solid #ddd;
 }
+
 .card{
   background:#fff;
   padding:18px;
@@ -50,6 +58,7 @@ button{
   margin:14px 0;
   box-shadow:0 5px 18px rgba(0,0,0,0.05);
 }
+
 .tabs{
   position:fixed;
   bottom:0;
@@ -60,29 +69,39 @@ button{
   justify-content:space-around;
   border-top:1px solid #ddd;
   padding:8px 0;
+  overflow-x:auto;
 }
+
 .tabs button{
   background:none;
   color:#111;
   font-size:12px;
   padding:6px;
+  min-width:48px;
 }
+
 .hidden{
   display:none;
 }
+
 .muted{
   color:#777;
   font-size:13px;
 }
+
 img{
   width:100%;
   border-radius:18px;
   margin-top:10px;
 }
+
 .big{
   font-size:22px;
 }
-.big input,.big textarea,.big button{
+
+.big input,
+.big textarea,
+.big button{
   font-size:20px;
 }
 
