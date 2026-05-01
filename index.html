@@ -1,46 +1,48 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Famille+</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Famille+</title>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <style>
-    body{margin:0;font-family:Arial;background:#f6efe6;color:#111}
-    .app{max-width:520px;margin:auto;padding:16px}
-    h1{font-size:34px;margin:10px 0}
-    input,textarea,select{width:100%;box-sizing:border-box;padding:14px;margin:7px 0;border-radius:16px;border:1px solid #ddd;font-size:16px}
-    button{border:0;border-radius:999px;padding:13px 18px;margin:6px 4px;background:#111;color:white;font-weight:700}
-    .light{background:white;color:#111;border:1px solid #ddd}
-    .card{background:white;border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 4px 14px #0001}
-    .tabs{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:9px 0;border-top:1px solid #ddd}
-    .tabs button{background:white;color:#111;font-size:12px;padding:7px}
-    .hidden{display:none}
-    .bottom{height:85px}
-    img{max-width:100%;border-radius:18px;margin-top:8px}
-    .muted{color:#777;font-size:14px}
-    .badge{background:#111;color:white;border-radius:20px;padding:4px 10px;font-size:12px}
-  </style>
+<style>
+body{margin:0;font-family:Arial;background:#f6efe6;color:#111}
+.app{max-width:540px;margin:auto;padding:16px 16px 90px}
+h1{font-size:36px;margin:12px 0}
+h2{margin:12px 0}
+input,textarea,select{width:100%;box-sizing:border-box;padding:14px;margin:7px 0;border-radius:16px;border:1px solid #ddd;font-size:16px}
+button{border:0;border-radius:999px;padding:12px 16px;margin:5px 3px;background:#111;color:white;font-weight:800}
+.light{background:white;color:#111;border:1px solid #ddd}
+.card{background:white;border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 4px 14px #0001}
+.tabs{position:fixed;bottom:0;left:0;right:0;background:white;display:flex;justify-content:space-around;padding:8px 0;border-top:1px solid #ddd}
+.tabs button{background:white;color:#111;font-size:12px;padding:6px}
+.hidden{display:none}
+.muted{color:#777;font-size:13px}
+.badge{background:#111;color:white;border-radius:20px;padding:4px 10px;font-size:12px}
+img{max-width:100%;border-radius:18px;margin-top:8px}
+.grandparent{font-size:21px}
+.grandparent input,.grandparent textarea,.grandparent button{font-size:20px}
+</style>
 </head>
 
 <body>
 <div class="app">
-  <h1>Famille+</h1>
-  <div id="authBox"></div>
-  <div id="main" class="hidden"></div>
+<h1>Famille+</h1>
+<div id="authBox"></div>
+<div id="main" class="hidden"></div>
 </div>
 
 <div id="tabs" class="tabs hidden">
-  <button onclick="show('home')">🏠 Accueil</button>
-  <button onclick="show('chat')">💬 Chat</button>
-  <button onclick="show('albums')">📸 Photos</button>
-  <button onclick="show('events')">📅 Events</button>
-  <button onclick="show('reviews')">⭐ Avis</button>
-  <button onclick="show('profile')">👤 Profil</button>
+<button onclick="show('home')">🏠<br>Fil</button>
+<button onclick="show('chat')">💬<br>Chat</button>
+<button onclick="show('events')">📅<br>Events</button>
+<button onclick="show('reviews')">⭐<br>Avis</button>
+<button onclick="show('notifs')">🔔<br>Notif</button>
+<button onclick="show('profile')">👤<br>Profil</button>
 </div>
 
 <script>
@@ -54,634 +56,321 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 
-let user = null;
-let activeGroup = localStorage.getItem("activeGroup") || null;
-let activeTab = "profile";
-let unsub = [];
+let user=null;
+let activeGroup=localStorage.getItem("activeGroup")||null;
+let activeTab=activeGroup?"home":"profile";
+let unsub=[];
 
-function el(id){return document.getElementById(id)}
-function code(){return Math.random().toString(36).slice(2,8).toUpperCase()}
-function now(){return Date.now()}
-function clearSubs(){unsub.forEach(u=>u&&u());unsub=[]}
-function escapeHtml(t){return String(t||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]))}
+const $=id=>document.getElementById(id);
+const now=()=>Date.now();
+const invite=()=>Math.random().toString(36).slice(2,8).toUpperCase();
+const clean=t=>String(t||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function clear(){unsub.forEach(u=>u&&u());unsub=[]}
 
-function sortDocs(snapshot){
-  return snapshot.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+async function askNotif(){
+  if(!("Notification" in window)) return alert("Notifications non compatibles.");
+  const p=await Notification.requestPermission();
+  alert(p==="granted"?"Notifications activées ✅":"Notifications refusées");
 }
+function phoneNotif(title,body){
+  if("Notification" in window && Notification.permission==="granted"){
+    new Notification(title,{body});
+  }
+}
+async function addNotification(title,text,type="info"){
+  if(!activeGroup||!user)return;
+  await db.collection("notifications").add({
+    groupId:activeGroup,
+    title,text,type,
+    readBy:[],
+    createdAt:now()
+  });
+}
+function sortSnap(s){return s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}
 
 function imgToBase64(file){
-  return new Promise(resolve=>{
-    const reader = new FileReader();
-    reader.onload = e=>{
-      const img = new Image();
-      img.onload = ()=>{
-        const canvas = document.createElement("canvas");
-        let w = img.width, h = img.height, max = 800;
-        if(w > h && w > max){ h = h * max / w; w = max; }
-        if(h >= w && h > max){ w = w * max / h; h = max; }
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext("2d").drawImage(img,0,0,w,h);
-        resolve(canvas.toDataURL("image/jpeg",0.65));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
+ return new Promise(res=>{
+  const r=new FileReader();
+  r.onload=e=>{
+   const img=new Image();
+   img.onload=()=>{
+    const c=document.createElement("canvas");
+    let w=img.width,h=img.height,max=700;
+    if(w>h&&w>max){h=h*max/w;w=max}
+    if(h>=w&&h>max){w=w*max/h;h=max}
+    c.width=w;c.height=h;
+    c.getContext("2d").drawImage(img,0,0,w,h);
+    res(c.toDataURL("image/jpeg",0.55));
+   };
+   img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+ });
 }
 
 auth.onAuthStateChanged(async u=>{
-  user = u;
-  clearSubs();
-
-  if(!u){
-    el("main").classList.add("hidden");
-    el("tabs").classList.add("hidden");
-    renderAuth();
-    return;
-  }
-
-  await db.collection("users").doc(u.uid).set({
-    email:u.email,
-    name:u.email,
-    updatedAt:now()
-  }, {merge:true});
-
-  el("authBox").classList.add("hidden");
-  el("main").classList.remove("hidden");
-  el("tabs").classList.remove("hidden");
-
-  if(activeGroup){ activeTab="home"; }
-  render();
+ user=u; clear();
+ if(!u){renderAuth();return}
+ await db.collection("users").doc(u.uid).set({email:u.email,updatedAt:now()},{merge:true});
+ $("authBox").classList.add("hidden");
+ $("main").classList.remove("hidden");
+ $("tabs").classList.remove("hidden");
+ listenBrowserNotifications();
+ render();
 });
 
 function renderAuth(){
-  el("authBox").classList.remove("hidden");
-  el("authBox").innerHTML = `
-    <div class="card">
-      <h2>Connexion famille</h2>
-      <input id="email" placeholder="Email">
-      <input id="pass" placeholder="Mot de passe" type="password">
-      <button onclick="login()">Connexion</button>
-      <button class="light" onclick="register()">Créer compte</button>
-    </div>
-  `;
+ $("tabs").classList.add("hidden");
+ $("main").classList.add("hidden");
+ $("authBox").classList.remove("hidden");
+ $("authBox").innerHTML=`
+ <div class="card">
+ <h2>Connexion privée</h2>
+ <input id="email" placeholder="Email">
+ <input id="pass" type="password" placeholder="Mot de passe">
+ <button onclick="login()">Connexion</button>
+ <button class="light" onclick="register()">Créer compte</button>
+ </div>`;
 }
-
-async function login(){
-  try{ await auth.signInWithEmailAndPassword(el("email").value, el("pass").value); }
-  catch(e){ alert(e.message); }
-}
-
-async function register(){
-  try{ await auth.createUserWithEmailAndPassword(el("email").value, el("pass").value); }
-  catch(e){ alert(e.message); }
-}
-
-function show(tab){
-  activeTab = tab;
-  render();
-}
-
-function render(){
-  clearSubs();
-
-  if(!activeGroup && activeTab !== "profile"){
-    activeTab = "profile";
-  }
-
-  if(activeTab === "home") renderHome();
-  if(activeTab === "chat") renderChat();
-  if(activeTab === "albums") renderAlbums();
-  if(activeTab === "events") renderEvents();
-  if(activeTab === "reviews") renderReviews();
-  if(activeTab === "profile") renderProfile();
-}
-
-function groupHeader(){
-  return `
-    <div class="card">
-      <b>Groupe actif :</b> ${activeGroup ? activeGroup : "Aucun"}
-      <br><button class="light" onclick="show('profile')">Changer de groupe</button>
-    </div>
-  `;
+async function login(){try{await auth.signInWithEmailAndPassword(email.value,pass.value)}catch(e){alert(e.message)}}
+async function register(){try{await auth.createUserWithEmailAndPassword(email.value,pass.value)}catch(e){alert(e.message)}}
+function show(t){activeTab=t;render()}
+function groupBox(){return `<div class="card"><b>Groupe actif</b><br>${activeGroup||"Aucun"}<br><button class="light" onclick="show('profile')">Changer</button></div>`}
+function render(){clear(); if(!activeGroup&&activeTab!=="profile")activeTab="profile";
+ if(activeTab==="home")home();
+ if(activeTab==="chat")chat();
+ if(activeTab==="events")events();
+ if(activeTab==="reviews")reviews();
+ if(activeTab==="notifs")notifs();
+ if(activeTab==="profile")profile();
 }
 
 /* PROFIL */
-function renderProfile(){
-  el("main").innerHTML = `
-    <h2>Profil & groupes</h2>
-
-    <div class="card">
-      <p><b>Connecté :</b><br>${user.email}</p>
-      <button onclick="auth.signOut()">Déconnexion</button>
-      <button class="light" onclick="document.body.style.fontSize='20px'">Mode grands-parents</button>
-    </div>
-
-    <div class="card">
-      <h3>Créer un groupe</h3>
-      <input id="groupName" placeholder="Ex : Famille proche">
-      <button onclick="createGroup()">Créer un groupe</button>
-    </div>
-
-    <div class="card">
-      <h3>Rejoindre un groupe</h3>
-      <input id="groupCode" placeholder="Code invitation">
-      <button onclick="joinGroup()">Rejoindre</button>
-    </div>
-
-    <h3>Mes groupes</h3>
-    <div id="groupsList"></div>
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("groupMembers").where("userId","==",user.uid).onSnapshot(async snap=>{
-    let html = "";
-    for(const doc of snap.docs){
-      const member = doc.data();
-      const g = await db.collection("groups").doc(member.groupId).get();
-      if(g.exists){
-        const gd = g.data();
-        html += `
-          <div class="card">
-            <b>${escapeHtml(gd.name)}</b><br>
-            <span class="muted">Code invitation : ${gd.code}</span><br>
-            <button onclick="setGroup('${g.id}')">Utiliser ce groupe</button>
-          </div>
-        `;
-      }
-    }
-    el("groupsList").innerHTML = html || "<p>Aucun groupe pour le moment.</p>";
-  }));
+function profile(){
+ $("main").innerHTML=`
+ <h2>Profil</h2>
+ <div class="card">
+ <b>${user.email}</b><br>
+ <button onclick="askNotif()">Activer notifications</button>
+ <button class="light" onclick="document.body.classList.toggle('grandparent')">Mode grands-parents</button>
+ <button class="light" onclick="auth.signOut()">Déconnexion</button>
+ </div>
+ <div class="card">
+ <h3>Créer groupe</h3>
+ <input id="gname" placeholder="Famille proche">
+ <button onclick="createGroup()">Créer</button>
+ </div>
+ <div class="card">
+ <h3>Rejoindre groupe</h3>
+ <input id="gcode" placeholder="Code invitation">
+ <button onclick="joinGroup()">Rejoindre</button>
+ </div>
+ <h3>Mes groupes</h3>
+ <div id="groups"></div>`;
+ unsub.push(db.collection("groupMembers").where("userId","==",user.uid).onSnapshot(async s=>{
+  let h="";
+  for(const d of s.docs){
+   const m=d.data(); const g=await db.collection("groups").doc(m.groupId).get();
+   if(g.exists)h+=`<div class="card"><b>${clean(g.data().name)}</b><br><span class="muted">Code : ${g.data().code}</span><br><span class="badge">${m.role}</span><br><button onclick="setGroup('${g.id}')">Choisir</button></div>`;
+  }
+  $("groups").innerHTML=h||"<p>Aucun groupe.</p>";
+ }));
 }
-
 async function createGroup(){
-  const name = el("groupName").value || "Ma famille";
-  const invite = code();
-
-  const ref = await db.collection("groups").add({
-    name,
-    code:invite,
-    ownerId:user.uid,
-    createdAt:now()
-  });
-
-  await db.collection("groupMembers").add({
-    groupId:ref.id,
-    userId:user.uid,
-    role:"admin",
-    createdAt:now()
-  });
-
-  setGroup(ref.id);
-  alert("Code invitation : " + invite);
+ const code=invite();
+ const ref=await db.collection("groups").add({name:gname.value||"Ma famille",code,ownerId:user.uid,createdAt:now()});
+ await db.collection("groupMembers").add({groupId:ref.id,userId:user.uid,role:"admin",createdAt:now()});
+ setGroup(ref.id); alert("Code invitation : "+code);
 }
-
 async function joinGroup(){
-  const invite = el("groupCode").value.trim().toUpperCase();
-  const snap = await db.collection("groups").where("code","==",invite).get();
-
-  if(snap.empty){
-    alert("Code introuvable");
-    return;
-  }
-
-  const groupId = snap.docs[0].id;
-
-  await db.collection("groupMembers").add({
-    groupId,
-    userId:user.uid,
-    role:"member",
-    createdAt:now()
-  });
-
-  setGroup(groupId);
+ const s=await db.collection("groups").where("code","==",gcode.value.toUpperCase()).get();
+ if(s.empty)return alert("Code introuvable");
+ const gid=s.docs[0].id;
+ await db.collection("groupMembers").add({groupId:gid,userId:user.uid,role:"member",createdAt:now()});
+ setGroup(gid);
 }
+function setGroup(id){activeGroup=id;localStorage.setItem("activeGroup",id);activeTab="home";render()}
 
-function setGroup(id){
-  activeGroup = id;
-  localStorage.setItem("activeGroup", id);
-  activeTab = "home";
-  render();
+/* HOME */
+function home(){
+ $("main").innerHTML=groupBox()+`
+ <h2>Fil familial</h2>
+ <div class="card">
+ <textarea id="postText" placeholder="Nouvelle, souvenir, photo..."></textarea>
+ <input id="postImg" type="file" accept="image/*">
+ <button onclick="addPost()">Publier</button>
+ </div>
+ <div id="posts"></div>`;
+ unsub.push(db.collection("posts").where("groupId","==",activeGroup).onSnapshot(s=>{
+  $("posts").innerHTML=sortSnap(s).map(p=>`
+  <div class="card">
+  <b>${clean(p.authorEmail)}</b>
+  <p>${clean(p.text)}</p>
+  ${p.image?`<img src="${p.image}">`:""}
+  <button class="light" onclick="like('${p.id}',${(p.likes||[]).includes(user.uid)})">❤️ ${(p.likes||[]).length}</button>
+  <input id="com_${p.id}" placeholder="Commentaire">
+  <button class="light" onclick="comment('${p.id}')">Commenter</button>
+  <div id="comments_${p.id}"></div>
+  </div>`).join("");
+  sortSnap(s).forEach(p=>loadComments(p.id));
+ }));
 }
-
-/* ACCUEIL */
-function renderHome(){
-  el("main").innerHTML = groupHeader() + `
-    <h2>Fil familial</h2>
-
-    <div class="card">
-      <textarea id="postText" placeholder="Partager une nouvelle..."></textarea>
-      <input id="postFile" type="file" accept="image/*">
-      <button onclick="addPost()">Publier</button>
-    </div>
-
-    <div id="posts"></div>
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("posts").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const posts = sortDocs(snap);
-
-    el("posts").innerHTML = posts.map(p=>`
-      <div class="card">
-        <p>${escapeHtml(p.text)}</p>
-        ${p.image ? `<img src="${p.image}">` : ""}
-        <button class="light" onclick="toggleLike('${p.id}', ${(p.likes||[]).includes(user.uid)})">
-          ❤️ ${(p.likes||[]).length}
-        </button>
-
-        <input id="comment_${p.id}" placeholder="Ajouter un commentaire">
-        <button class="light" onclick="addComment('${p.id}')">Commenter</button>
-        <div id="comments_${p.id}"></div>
-      </div>
-    `).join("");
-
-    posts.forEach(p=>loadComments(p.id));
-  }));
-}
-
 async function addPost(){
-  const text = el("postText").value;
-  let image = "";
-
-  if(el("postFile").files[0]){
-    image = await imgToBase64(el("postFile").files[0]);
-  }
-
-  await db.collection("posts").add({
-    groupId:activeGroup,
-    authorId:user.uid,
-    authorEmail:user.email,
-    text,
-    image,
-    likes:[],
-    createdAt:now()
-  });
+ let image="";
+ if(postImg.files[0]) image=await imgToBase64(postImg.files[0]);
+ await db.collection("posts").add({groupId:activeGroup,authorId:user.uid,authorEmail:user.email,text:postText.value,image,likes:[],createdAt:now()});
+ await addNotification("Nouveau post",user.email+" a publié dans la famille","post");
 }
-
-async function toggleLike(postId, liked){
-  const ref = db.collection("posts").doc(postId);
-  await ref.update({
-    likes: liked
-      ? firebase.firestore.FieldValue.arrayRemove(user.uid)
-      : firebase.firestore.FieldValue.arrayUnion(user.uid)
-  });
+async function like(id,liked){
+ await db.collection("posts").doc(id).update({likes:liked?firebase.firestore.FieldValue.arrayRemove(user.uid):firebase.firestore.FieldValue.arrayUnion(user.uid)});
 }
-
-async function addComment(postId){
-  const text = el("comment_" + postId).value;
-  if(!text) return;
-
-  await db.collection("comments").add({
-    postId,
-    groupId:activeGroup,
-    userId:user.uid,
-    email:user.email,
-    text,
-    createdAt:now()
-  });
+async function comment(postId){
+ const text=$("com_"+postId).value;if(!text)return;
+ await db.collection("comments").add({postId,groupId:activeGroup,email:user.email,text,createdAt:now()});
+ await addNotification("Nouveau commentaire",user.email+" a commenté un post","comment");
 }
-
 function loadComments(postId){
-  db.collection("comments").where("postId","==",postId).onSnapshot(snap=>{
-    const box = el("comments_" + postId);
-    if(!box) return;
-    box.innerHTML = snap.docs.map(d=>`<p class="muted">💬 ${escapeHtml(d.data().text)}</p>`).join("");
-  });
+ db.collection("comments").where("postId","==",postId).onSnapshot(s=>{
+  const box=$("comments_"+postId); if(!box)return;
+  box.innerHTML=s.docs.map(d=>`<p class="muted">💬 ${clean(d.data().text)}</p>`).join("");
+ });
 }
 
 /* CHAT */
-function renderChat(){
-  el("main").innerHTML = groupHeader() + `
-    <h2>Chat famille</h2>
-    <div id="messages"></div>
-
-    <div class="card">
-      <input id="msgText" placeholder="Message ou emoji 😊">
-      <button onclick="sendMessage()">Envoyer</button>
-    </div>
-
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("groupMessages").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const messages = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-
-    el("messages").innerHTML = messages.map(m=>`
-      <div class="card">
-        <b>${escapeHtml(m.senderEmail || "Famille")}</b>
-        <p>${escapeHtml(m.text)}</p>
-        <span class="badge">${m.type || "text"}</span>
-      </div>
-    `).join("");
-  }));
+function chat(){
+ $("main").innerHTML=groupBox()+`
+ <h2>Chat famille</h2>
+ <div id="msgs"></div>
+ <div class="card">
+ <input id="msg" placeholder="Message ou emoji 😊">
+ <button onclick="sendMsg()">Envoyer</button>
+ </div>`;
+ unsub.push(db.collection("groupMessages").where("groupId","==",activeGroup).onSnapshot(s=>{
+  const arr=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  $("msgs").innerHTML=arr.map(m=>`<div class="card"><b>${clean(m.senderEmail)}</b><p>${clean(m.text)}</p><span class="badge">${m.type}</span></div>`).join("");
+ }));
 }
-
-async function sendMessage(text, type){
-  const finalText = text || el("msgText").value;
-  const finalType = type || "text";
-
-  if(!finalText) return;
-
-  await db.collection("groupMessages").add({
-    groupId:activeGroup,
-    senderId:user.uid,
-    senderEmail:user.email,
-    type:finalType,
-    text:finalText,
-    createdAt:now()
-  });
-
-  if(el("msgText")) el("msgText").value = "";
-}
-
-/* ALBUMS */
-function renderAlbums(){
-  el("main").innerHTML = groupHeader() + `
-    <h2>Albums photos</h2>
-
-    <div class="card">
-      <input id="albumName" placeholder="Nom de l’album">
-      <button onclick="createAlbum()">Créer album</button>
-    </div>
-
-    <div class="card">
-      <select id="albumSelect"></select>
-      <input id="albumFile" type="file" accept="image/*">
-      <button onclick="addPhoto()">Ajouter photo</button>
-    </div>
-
-    <div id="photos"></div>
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("albums").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    el("albumSelect").innerHTML = snap.docs.map(d=>`<option value="${d.id}">${escapeHtml(d.data().name)}</option>`).join("");
-  }));
-
-  unsub.push(db.collection("photos").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const photos = sortDocs(snap);
-    el("photos").innerHTML = photos.map(p=>`
-      <div class="card"><img src="${p.image}"></div>
-    `).join("");
-  }));
-}
-
-async function createAlbum(){
-  await db.collection("albums").add({
-    groupId:activeGroup,
-    name:el("albumName").value || "Album famille",
-    createdAt:now()
-  });
-}
-
-async function addPhoto(){
-  if(!el("albumFile").files[0]){
-    alert("Choisis une photo");
-    return;
-  }
-
-  const image = await imgToBase64(el("albumFile").files[0]);
-
-  await db.collection("photos").add({
-    groupId:activeGroup,
-    albumId:el("albumSelect").value || "",
-    image,
-    createdAt:now()
-  });
+async function sendMsg(text,type="text"){
+ const t=text||msg.value;if(!t)return;
+ await db.collection("groupMessages").add({groupId:activeGroup,senderId:user.uid,senderEmail:user.email,type,text:t,createdAt:now()});
+ await addNotification("Nouveau message",user.email+" : "+t,"message");
+ if($("msg"))msg.value="";
 }
 
 /* EVENTS */
-function renderEvents(){
-  el("main").innerHTML = groupHeader() + `
-    <h2>Événements</h2>
-
-    <div class="card">
-      <input id="eventTitle" placeholder="Titre">
-      <input id="eventType" placeholder="Type : dîner, sortie...">
-      <input id="eventDate" type="date">
-      <input id="eventLocation" placeholder="Lieu">
-      <button onclick="createEvent()">Créer événement</button>
-    </div>
-
-    <div id="events"></div>
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("events").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const events = sortDocs(snap);
-
-    el("events").innerHTML = events.map(e=>`
-      <div class="card">
-        <h3>📅 ${escapeHtml(e.title)}</h3>
-        <p>${escapeHtml(e.type)} · ${escapeHtml(e.location)} · ${escapeHtml(e.date)}</p>
-
-        <button onclick="rsvp('${e.id}','Oui')">Oui</button>
-        <button class="light" onclick="rsvp('${e.id}','Peut-être')">Peut-être</button>
-        <button class="light" onclick="rsvp('${e.id}','Non')">Non</button>
-        <button onclick="sendMessage('📅 ${escapeHtml(e.title)}','eventCard')">Partager chat</button>
-
-        <hr>
-        <input id="item_${e.id}" placeholder="Boisson, dessert...">
-        <button class="light" onclick="addItem('${e.id}')">Ajouter</button>
-        <div id="items_${e.id}"></div>
-      </div>
-    `).join("");
-
-    events.forEach(e=>loadItems(e.id));
-  }));
+function events(){
+ $("main").innerHTML=groupBox()+`
+ <h2>Événements</h2>
+ <div class="card">
+ <input id="etitle" placeholder="Titre">
+ <input id="etype" placeholder="Dîner, sortie...">
+ <input id="edate" type="date">
+ <input id="eloc" placeholder="Lieu">
+ <button onclick="createEvent()">Créer événement</button>
+ </div>
+ <div id="events"></div>`;
+ unsub.push(db.collection("events").where("groupId","==",activeGroup).onSnapshot(s=>{
+  $("events").innerHTML=sortSnap(s).map(e=>`
+  <div class="card">
+  <h3>📅 ${clean(e.title)}</h3>
+  <p>${clean(e.type)} · ${clean(e.date)} · ${clean(e.location)}</p>
+  <button onclick="rsvp('${e.id}','Oui')">Oui</button>
+  <button class="light" onclick="rsvp('${e.id}','Peut-être')">Peut-être</button>
+  <button class="light" onclick="rsvp('${e.id}','Non')">Non</button>
+  <button onclick="sendMsg('📅 ${clean(e.title)}','eventCard')">Partager chat</button>
+  <hr>
+  <input id="item_${e.id}" placeholder="Boisson, dessert...">
+  <button class="light" onclick="addItem('${e.id}')">Ajouter</button>
+  <div id="items_${e.id}"></div>
+  </div>`).join("");
+  sortSnap(s).forEach(e=>loadItems(e.id));
+ }));
 }
-
 async function createEvent(){
-  const title = el("eventTitle").value;
-
-  await db.collection("events").add({
-    groupId:activeGroup,
-    title,
-    type:el("eventType").value,
-    date:el("eventDate").value,
-    location:el("eventLocation").value,
-    participants:[],
-    responses:[],
-    createdAt:now()
-  });
-
-  await sendMessage("📅 Nouvel événement : " + title, "eventCard");
+ await db.collection("events").add({groupId:activeGroup,title:etitle.value,type:etype.value,date:edate.value,location:eloc.value,responses:[],createdAt:now()});
+ await addNotification("Nouvel événement",etitle.value,"event");
+ await sendMsg("📅 Nouvel événement : "+etitle.value,"eventCard");
 }
-
-async function rsvp(eventId, response){
-  await db.collection("events").doc(eventId).update({
-    responses:firebase.firestore.FieldValue.arrayUnion({
-      userId:user.uid,
-      email:user.email,
-      response
-    })
-  });
+async function rsvp(id,r){await db.collection("events").doc(id).update({responses:firebase.firestore.FieldValue.arrayUnion({userId:user.uid,email:user.email,response:r})})}
+async function addItem(id){await db.collection("eventItems").add({eventId:id,groupId:activeGroup,title:$("item_"+id).value,assignedTo:"",status:"vide",createdAt:now()})}
+function loadItems(id){
+ db.collection("eventItems").where("eventId","==",id).onSnapshot(s=>{
+  const box=$("items_"+id);if(!box)return;
+  box.innerHTML=s.docs.map(d=>`<p>🍽️ ${clean(d.data().title)} — ${d.data().assignedTo||"personne"} <button class="light" onclick="takeItem('${d.id}')">Je prends</button></p>`).join("");
+ });
 }
+async function takeItem(id){await db.collection("eventItems").doc(id).update({assignedTo:user.email,status:"pris"})}
 
-async function addItem(eventId){
-  await db.collection("eventItems").add({
-    eventId,
-    groupId:activeGroup,
-    title:el("item_" + eventId).value,
-    assignedTo:"",
-    status:"vide",
-    createdAt:now()
-  });
+/* REVIEWS / VOTES */
+function reviews(){
+ $("main").innerHTML=groupBox()+`
+ <h2>Avis & votes</h2>
+ <div class="card">
+ <input id="rtitle" placeholder="Film, série, sortie, souvenir">
+ <select id="rcat"><option>Film</option><option>Série</option><option>Sortie</option><option>Souvenir</option></select>
+ <select id="rrate"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+ <button onclick="addReview()">Ajouter avis</button>
+ </div>
+ <div class="card">
+ <input id="pq" placeholder="Question du vote">
+ <input id="po" placeholder="Options séparées par virgule">
+ <button onclick="addPoll()">Créer vote</button>
+ </div>
+ <div id="reviews"></div><div id="polls"></div>`;
+ unsub.push(db.collection("reviews").where("groupId","==",activeGroup).onSnapshot(s=>{
+  $("reviews").innerHTML="<h3>Top 5 famille</h3>"+sortSnap(s).slice(0,5).map(r=>`<div class="card"><b>${clean(r.title)}</b><p>${r.category} · ⭐ ${r.ratingAverage}</p></div>`).join("");
+ }));
+ unsub.push(db.collection("eventPolls").where("groupId","==",activeGroup).onSnapshot(s=>{
+  $("polls").innerHTML="<h3>Votes</h3>"+sortSnap(s).map(p=>`
+  <div class="card"><b>🗳️ ${clean(p.question)}</b>
+  ${(p.options||[]).map(o=>`<p><button class="light" onclick="vote('${p.id}','${clean(o)}')">${clean(o)}</button> ${(p.votes||[]).filter(v=>v.option===o).length}</p>`).join("")}
+  ${p.isClosed?`<p>🏆 ${clean(p.winningOptionId)}</p>`:`<button onclick="closePoll('${p.id}')">Clôturer</button>`}
+  </div>`).join("");
+ }));
 }
-
-function loadItems(eventId){
-  db.collection("eventItems").where("eventId","==",eventId).onSnapshot(snap=>{
-    const box = el("items_" + eventId);
-    if(!box) return;
-
-    box.innerHTML = snap.docs.map(d=>{
-      const item = d.data();
-      return `
-        <p>
-          🍽️ ${escapeHtml(item.title)} — ${item.assignedTo || "personne"}
-          <button class="light" onclick="takeItem('${d.id}')">Je prends</button>
-        </p>
-      `;
-    }).join("");
-  });
-}
-
-async function takeItem(id){
-  await db.collection("eventItems").doc(id).update({
-    assignedTo:user.email,
-    status:"pris"
-  });
-}
-
-/* REVIEWS + VOTES */
-function renderReviews(){
-  el("main").innerHTML = groupHeader() + `
-    <h2>Avis & votes</h2>
-
-    <div class="card">
-      <h3>Ajouter avis</h3>
-      <input id="reviewTitle" placeholder="Film, série, sortie, souvenir">
-      <select id="reviewCat">
-        <option>Film</option>
-        <option>Série</option>
-        <option>Sortie</option>
-        <option>Souvenir</option>
-      </select>
-      <select id="reviewRate">
-        <option>5</option>
-        <option>4</option>
-        <option>3</option>
-        <option>2</option>
-        <option>1</option>
-      </select>
-      <button onclick="addReview()">Ajouter ⭐</button>
-    </div>
-
-    <div class="card">
-      <h3>Créer vote</h3>
-      <input id="pollQuestion" placeholder="Question">
-      <input id="pollOptions" placeholder="Options séparées par virgule">
-      <button onclick="addPoll()">Créer vote</button>
-    </div>
-
-    <div id="reviews"></div>
-    <div id="polls"></div>
-    <div class="bottom"></div>
-  `;
-
-  unsub.push(db.collection("reviews").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const reviews = sortDocs(snap);
-    el("reviews").innerHTML = "<h3>Top famille</h3>" + reviews.map(r=>`
-      <div class="card">
-        <b>${escapeHtml(r.title)}</b>
-        <p>${escapeHtml(r.category)} · ⭐ ${r.ratingAverage}</p>
-      </div>
-    `).join("");
-  }));
-
-  unsub.push(db.collection("eventPolls").where("groupId","==",activeGroup).onSnapshot(snap=>{
-    const polls = sortDocs(snap);
-    el("polls").innerHTML = "<h3>Votes</h3>" + polls.map(p=>`
-      <div class="card">
-        <b>🗳️ ${escapeHtml(p.question)}</b>
-        ${(p.options||[]).map(o=>`
-          <p>
-            <button class="light" onclick="vote('${p.id}','${escapeHtml(o)}')">${escapeHtml(o)}</button>
-            ${(p.votes||[]).filter(v=>v.option===o).length} vote(s)
-          </p>
-        `).join("")}
-        ${p.isClosed ? `<p>🏆 Gagnant : ${escapeHtml(p.winningOptionId)}</p>` : `<button onclick="closePoll('${p.id}')">Clôturer 🏆</button>`}
-      </div>
-    `).join("");
-  }));
-}
-
-async function addReview(){
-  const rating = Number(el("reviewRate").value);
-
-  await db.collection("reviews").add({
-    groupId:activeGroup,
-    title:el("reviewTitle").value,
-    category:el("reviewCat").value,
-    ratingAverage:rating,
-    ratings:[{userId:user.uid,rating}],
-    favorite:false,
-    createdAt:now()
-  });
-}
-
+async function addReview(){await db.collection("reviews").add({groupId:activeGroup,title:rtitle.value,category:rcat.value,ratingAverage:Number(rrate.value),ratings:[{userId:user.uid,rating:Number(rrate.value)}],createdAt:now()})}
 async function addPoll(){
-  const question = el("pollQuestion").value;
-  const options = el("pollOptions").value.split(",").map(x=>x.trim()).filter(Boolean);
-
-  await db.collection("eventPolls").add({
-    groupId:activeGroup,
-    question,
-    options,
-    votes:[],
-    isClosed:false,
-    winningOptionId:"",
-    createdAt:now()
-  });
-
-  await sendMessage("🗳️ Nouveau vote : " + question, "pollCard");
+ const options=po.value.split(",").map(x=>x.trim()).filter(Boolean);
+ await db.collection("eventPolls").add({groupId:activeGroup,question:pq.value,options,votes:[],isClosed:false,winningOptionId:"",createdAt:now()});
+ await addNotification("Nouveau vote",pq.value,"poll");
+ await sendMsg("🗳️ Nouveau vote : "+pq.value,"pollCard");
+}
+async function vote(id,option){await db.collection("eventPolls").doc(id).update({votes:firebase.firestore.FieldValue.arrayUnion({userId:user.uid,option})})}
+async function closePoll(id){
+ const d=await db.collection("eventPolls").doc(id).get(); const p=d.data();
+ let win="",max=-1;(p.options||[]).forEach(o=>{let n=(p.votes||[]).filter(v=>v.option===o).length;if(n>max){max=n;win=o}});
+ await db.collection("eventPolls").doc(id).update({isClosed:true,winningOptionId:win});
 }
 
-async function vote(pollId, option){
-  await db.collection("eventPolls").doc(pollId).update({
-    votes:firebase.firestore.FieldValue.arrayUnion({
-      userId:user.uid,
-      option
-    })
-  });
+/* NOTIFS */
+function notifs(){
+ $("main").innerHTML=groupBox()+`<h2>Notifications</h2><button onclick="markAllRead()">Tout marquer lu</button><div id="notifList"></div>`;
+ unsub.push(db.collection("notifications").where("groupId","==",activeGroup).onSnapshot(s=>{
+  $("notifList").innerHTML=sortSnap(s).map(n=>`
+  <div class="card">
+  <b>${clean(n.title)}</b>
+  <p>${clean(n.text)}</p>
+  <span class="badge">${n.type}</span>
+  </div>`).join("")||"<p>Aucune notification.</p>";
+ }));
 }
-
-async function closePoll(pollId){
-  const doc = await db.collection("eventPolls").doc(pollId).get();
-  const poll = doc.data();
-
-  let winner = "";
-  let max = -1;
-
-  (poll.options||[]).forEach(option=>{
-    const count = (poll.votes||[]).filter(v=>v.option===option).length;
-    if(count > max){
-      max = count;
-      winner = option;
-    }
+async function markAllRead(){
+ const s=await db.collection("notifications").where("groupId","==",activeGroup).get();
+ s.docs.forEach(d=>db.collection("notifications").doc(d.id).update({readBy:firebase.firestore.FieldValue.arrayUnion(user.uid)}));
+}
+function listenBrowserNotifications(){
+ if(!activeGroup)return;
+ db.collection("notifications").where("groupId","==",activeGroup).onSnapshot(s=>{
+  s.docChanges().forEach(c=>{
+   if(c.type==="added"){
+    const n=c.doc.data();
+    if(n.createdAt > Date.now()-5000) phoneNotif(n.title,n.text);
+   }
   });
-
-  await db.collection("eventPolls").doc(pollId).update({
-    isClosed:true,
-    winningOptionId:winner
-  });
-
-  alert("Gagnant 🏆 : " + winner);
+ });
 }
 </script>
 </body>
