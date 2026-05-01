@@ -1,0 +1,111 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* GLOBAL */
+body {
+  background: #f5efe6;
+  color: #111;
+  padding-bottom: 80px;
+}
+
+/* TITRES */
+h1 {
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+h2 {
+  margin: 15px 0;
+}
+
+/* CARD */
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 16px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* INPUT */
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+/* BUTTON */
+button {
+  background: #111;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* IMAGE */
+img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+/* TEXT */
+.muted {
+  color: #777;
+  font-size: 12px;
+}
+
+/* NAVBAR BAS */
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
+
+.navbar div {
+  text-align: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* CHAT BULLES */
+.chat-bubble {
+  max-width: 70%;
+  padding: 10px;
+  border-radius: 18px;
+  margin: 6px 0;
+}
+
+.me {
+  background: #111;
+  color: white;
+  margin-left: auto;
+}
+
+.other {
+  background: #eee;
+}
+
+/* GRAND PARENT MODE */
+.big-text {
+  font-size: 20px;
+}
