@@ -3,15 +3,14 @@
 <head>
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#111111">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Famille+</title>
+  <meta name="theme-color" content="#111111">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Famille+</title>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 
 <body>
@@ -23,21 +22,23 @@
 </div>
 
 <div class="tabs hidden" id="tabs">
-  <button onclick="nav('home')">🏠<br>Fil</button>
-  <button onclick="nav('chat')">💬<br>Chat</button>
-  <button onclick="nav('photos')">📸<br>Photos</button>
-  <button onclick="nav('events')">📅<br>Events</button>
-  <button onclick="nav('reviews')">⭐<br>Avis</button>
-  <button onclick="nav('votes')">🗳️<br>Votes</button>
-  <button onclick="nav('notifs')">🔔<br>Notif</button>
-  <button onclick="nav('profile')">👤<br>Profil</button>
+  <button onclick="nav('home')" id="tab-home">🏠<br>Fil <span id="badge-home"></span></button>
+  <button onclick="nav('chat')" id="tab-chat">💬<br>Chat <span id="badge-chat"></span></button>
+  <button onclick="nav('photos')" id="tab-photos">📸<br>Photos <span id="badge-photos"></span></button>
+  <button onclick="nav('events')" id="tab-events">📅<br>Events <span id="badge-events"></span></button>
+  <button onclick="nav('reviews')" id="tab-reviews">⭐<br>Avis <span id="badge-reviews"></span></button>
+  <button onclick="nav('votes')" id="tab-votes">🗳️<br>Votes <span id="badge-votes"></span></button>
+  <button onclick="nav('profile')" id="tab-profile">👤<br>Profil</button>
 </div>
 
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBhiLhzTpwfIJc7pNLuv1u5GpyLPtxKob4",
   authDomain: "familyplus-6d726.firebaseapp.com",
-  projectId: "familyplus-6d726"
+  projectId: "familyplus-6d726",
+  storageBucket: "familyplus-6d726.firebasestorage.app",
+  messagingSenderId: "908553231300",
+  appId: "1:908553231300:web:14a37471ade9ce397d2291"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -47,9 +48,13 @@ const db = firebase.firestore();
 let user = null;
 let group = localStorage.getItem("group") || null;
 let page = group ? "home" : "profile";
+let badgeUnsubscribe = null;
 
 function now(){ return Date.now(); }
-function code(){ return Math.random().toString(36).substring(2,8).toUpperCase(); }
+
+function code(){
+  return Math.random().toString(36).substring(2,8).toUpperCase();
+}
 
 function clean(text){
   return String(text || "").replace(/[&<>"']/g, m => ({
@@ -71,8 +76,17 @@ function imageToBase64(file){
         let w = img.width;
         let h = img.height;
         const max = 900;
-        if(w > h && w > max){ h = h * max / w; w = max; }
-        if(h >= w && h > max){ w = w * max / h; h = max; }
+
+        if(w > h && w > max){
+          h = h * max / w;
+          w = max;
+        }
+
+        if(h >= w && h > max){
+          w = w * max / h;
+          h = max;
+        }
+
         canvas.width = w;
         canvas.height = h;
         canvas.getContext("2d").drawImage(img,0,0,w,h);
@@ -102,6 +116,7 @@ auth.onAuthStateChanged(async u=>{
   document.getElementById("appContent").classList.remove("hidden");
   document.getElementById("tabs").classList.remove("hidden");
 
+  updateBadges();
   render();
 });
 
@@ -131,9 +146,88 @@ function register(){
   .catch(e=>alert(e.message));
 }
 
-function nav(p){
+async function nav(p){
   page = p;
+
+  if(group){
+    const typeMap = {
+      home:["post","comment"],
+      chat:["message"],
+      photos:["photo"],
+      events:["event"],
+      reviews:["review"],
+      votes:["poll"]
+    };
+
+    const types = typeMap[p] || [];
+
+    if(types.length){
+      const snap = await db.collection("notifications")
+      .where("groupId","==",group)
+      .get();
+
+      snap.docs.forEach(d=>{
+        const n = d.data();
+        if(types.includes(n.type)){
+          db.collection("notifications").doc(d.id).update({read:true});
+        }
+      });
+    }
+  }
+
   render();
+}
+
+function updateActiveTab(){
+  document.querySelectorAll(".tabs button").forEach(b=>{
+    b.classList.remove("active");
+  });
+
+  const el = document.getElementById("tab-" + page);
+  if(el) el.classList.add("active");
+}
+
+function updateBadges(){
+  if(!group) return;
+
+  if(badgeUnsubscribe){
+    badgeUnsubscribe();
+  }
+
+  badgeUnsubscribe = db.collection("notifications")
+  .where("groupId","==",group)
+  .onSnapshot(s=>{
+    let counts = {
+      home:0,
+      chat:0,
+      photos:0,
+      events:0,
+      reviews:0,
+      votes:0
+    };
+
+    s.docs.forEach(d=>{
+      const n = d.data();
+
+      if(n.read) return;
+
+      if(n.type==="post" || n.type==="comment") counts.home++;
+      if(n.type==="message") counts.chat++;
+      if(n.type==="photo") counts.photos++;
+      if(n.type==="event") counts.events++;
+      if(n.type==="review") counts.reviews++;
+      if(n.type==="poll") counts.votes++;
+    });
+
+    Object.keys(counts).forEach(k=>{
+      const el = document.getElementById("badge-" + k);
+      if(!el) return;
+
+      el.innerHTML = counts[k] > 0
+        ? `<span class="badge">${counts[k]}</span>`
+        : "";
+    });
+  });
 }
 
 function render(){
@@ -141,14 +235,17 @@ function render(){
     page = "profile";
   }
 
+  updateActiveTab();
+
   if(page === "home") home();
   if(page === "chat") chat();
   if(page === "photos") photos();
   if(page === "events") events();
   if(page === "reviews") reviews();
   if(page === "votes") votes();
-  if(page === "notifs") notifs();
   if(page === "profile") profile();
+
+  updateActiveTab();
 }
 
 function groupHeader(){
@@ -165,6 +262,7 @@ function groupHeader(){
 
 async function addNotif(title,text,type){
   if(!group) return;
+
   await db.collection("notifications").add({
     groupId:group,
     title,
@@ -205,9 +303,11 @@ function profile(){
   .where("userId","==",user.uid)
   .onSnapshot(async s=>{
     let html = "";
+
     for(const d of s.docs){
       const m = d.data();
       const g = await db.collection("groups").doc(m.groupId).get();
+
       if(g.exists){
         html += `
           <div class="card">
@@ -219,12 +319,14 @@ function profile(){
         `;
       }
     }
+
     groups.innerHTML = html || "<p>Aucun groupe</p>";
   });
 }
 
 async function createGroup(){
   const c = code();
+
   const ref = await db.collection("groups").add({
     name:gname.value || "Ma famille",
     code:c,
@@ -268,6 +370,7 @@ function setGroup(id){
   group = id;
   localStorage.setItem("group",id);
   page = "home";
+  updateBadges();
   render();
 }
 
@@ -290,8 +393,10 @@ function home(){
   .where("groupId","==",group)
   .onSnapshot(s=>{
     let html = "";
+
     s.docs.sort((a,b)=>b.data().createdAt-a.data().createdAt).forEach(d=>{
       const p = d.data();
+
       html += `
         <div class="card">
           <b>${clean(p.user)}</b>
@@ -305,14 +410,17 @@ function home(){
           <div id="comments_${d.id}"></div>
         </div>
       `;
+
       loadComments(d.id);
     });
+
     posts.innerHTML = html || "<p>Aucun post</p>";
   });
 }
 
 async function addPost(){
   let img = "";
+
   if(postImg.files[0]){
     img = await imageToBase64(postImg.files[0]);
   }
@@ -328,6 +436,7 @@ async function addPost(){
   });
 
   await addNotif("Nouveau post", user.email + " a publié une nouvelle", "post");
+
   postText.value = "";
   postImg.value = "";
 }
@@ -342,6 +451,7 @@ async function likePost(id,liked){
 
 async function addComment(postId){
   const input = document.getElementById("comment_"+postId);
+
   if(!input.value) return;
 
   await db.collection("comments").add({
@@ -353,6 +463,7 @@ async function addComment(postId){
   });
 
   await addNotif("Nouveau commentaire", user.email + " a commenté un post", "comment");
+
   input.value = "";
 }
 
@@ -361,13 +472,16 @@ function loadComments(postId){
   .where("postId","==",postId)
   .onSnapshot(s=>{
     const box = document.getElementById("comments_"+postId);
+
     if(!box) return;
 
     let html = "";
+
     s.docs.forEach(d=>{
       const c = d.data();
       html += `<p class="muted">💬 ${clean(c.user)} : ${clean(c.text)}</p>`;
     });
+
     box.innerHTML = html;
   });
 }
@@ -381,6 +495,7 @@ function chat(){
 
     <div class="card">
       <input id="msg" placeholder="Message 😊">
+      <input id="msgImg" type="file" accept="image/*">
       <button onclick="sendMsg()">Envoyer</button>
     </div>
   `;
@@ -431,13 +546,16 @@ function chat(){
     msgs.innerHTML = html || "<p>Aucun message</p>";
   });
 }
+
 async function sendMsg(customText="", customType="text"){
   let img = "";
+
   if(document.getElementById("msgImg") && msgImg.files[0]){
     img = await imageToBase64(msgImg.files[0]);
   }
 
   const text = customText || msg.value;
+
   if(!text && !img) return;
 
   await db.collection("groupMessages").add({
@@ -483,10 +601,12 @@ function photos(){
   .onSnapshot(s=>{
     let options = "";
     let html = "";
+
     s.docs.forEach(d=>{
       options += `<option value="${d.id}">${clean(d.data().name)}</option>`;
       html += `<div class="card">📁 ${clean(d.data().name)}</div>`;
     });
+
     albumSelect.innerHTML = options;
     albums.innerHTML = html || "<p>Aucun album</p>";
   });
@@ -495,8 +615,10 @@ function photos(){
   .where("groupId","==",group)
   .onSnapshot(s=>{
     let html = "";
+
     s.docs.sort((a,b)=>b.data().createdAt-a.data().createdAt).forEach(d=>{
       const p = d.data();
+
       html += `
         <div class="card">
           <img src="${p.image}">
@@ -505,6 +627,7 @@ function photos(){
         </div>
       `;
     });
+
     photoList.innerHTML = html;
   });
 }
@@ -515,6 +638,7 @@ async function createAlbum(){
     name:albumName.value || "Album famille",
     createdAt:now()
   });
+
   albumName.value = "";
 }
 
@@ -536,6 +660,7 @@ async function addPhoto(){
   });
 
   await addNotif("Nouvelle photo", user.email + " a ajouté une photo", "photo");
+
   photoFile.value = "";
   caption.value = "";
 }
@@ -562,6 +687,7 @@ function events(){
   .where("groupId","==",group)
   .onSnapshot(s=>{
     let html = "";
+
     s.docs.sort((a,b)=>b.data().createdAt-a.data().createdAt).forEach(d=>{
       const e = d.data();
 
@@ -580,7 +706,7 @@ function events(){
           <button class="light" onclick="rsvp('${d.id}','Peut-être')">Peut-être (${maybe})</button>
           <button class="light" onclick="rsvp('${d.id}','Non')">Non (${no})</button>
 
-          <button onclick="shareEvent('${e.title}')">Partager chat</button>
+          <button onclick="shareEvent('${clean(e.title)}')">Partager chat</button>
 
           <hr>
           <input id="item_${d.id}" placeholder="Boisson, dessert...">
@@ -588,8 +714,10 @@ function events(){
           <div id="items_${d.id}"></div>
         </div>
       `;
+
       loadItems(d.id);
     });
+
     eventList.innerHTML = html || "<p>Aucun événement</p>";
   });
 }
@@ -616,6 +744,7 @@ async function rsvp(eventId,response){
   const data = doc.data();
 
   let responses = (data.responses||[]).filter(r=>r.userId !== user.uid);
+
   responses.push({
     userId:user.uid,
     email:user.email,
@@ -631,6 +760,7 @@ async function shareEvent(title){
 
 async function addItem(eventId){
   const input = document.getElementById("item_"+eventId);
+
   await db.collection("eventItems").add({
     groupId:group,
     eventId,
@@ -639,6 +769,7 @@ async function addItem(eventId){
     status:"vide",
     createdAt:now()
   });
+
   input.value = "";
 }
 
@@ -647,11 +778,14 @@ function loadItems(eventId){
   .where("eventId","==",eventId)
   .onSnapshot(s=>{
     const box = document.getElementById("items_"+eventId);
+
     if(!box) return;
 
     let html = "";
+
     s.docs.forEach(d=>{
       const i = d.data();
+
       html += `
         <p>
           🍽️ ${clean(i.title)} — ${i.assignedTo || "personne"}
@@ -659,6 +793,7 @@ function loadItems(eventId){
         </p>
       `;
     });
+
     box.innerHTML = html;
   });
 }
@@ -708,6 +843,7 @@ function reviews(){
     .slice(0,5)
     .forEach(d=>{
       const r = d.data();
+
       html += `
         <div class="card">
           <b>${clean(r.title)}</b>
@@ -732,6 +868,8 @@ async function addReview(){
     createdAt:now()
   });
 
+  await addNotif("Nouvel avis", user.email + " a ajouté un avis", "review");
+
   reviewTitle.value = "";
   reviewText.value = "";
 }
@@ -755,13 +893,17 @@ function votes(){
   .where("groupId","==",group)
   .onSnapshot(s=>{
     let html = "";
+
     s.docs.sort((a,b)=>b.data().createdAt-a.data().createdAt).forEach(d=>{
       const p = d.data();
+
       html += `
         <div class="card">
           <h3>🗳️ ${clean(p.question)}</h3>
+
           ${(p.options||[]).map(o=>{
             const count = (p.votes||[]).filter(v=>v.option===o).length;
+
             return `
               <p>
                 <button class="light" onclick="vote('${d.id}','${clean(o)}')" ${p.isClosed ? "disabled" : ""}>
@@ -771,11 +913,14 @@ function votes(){
               </p>
             `;
           }).join("")}
+
           ${p.isClosed ? `<p>🏆 Gagnant : ${clean(p.winningOptionId)}</p>` : `<button onclick="closePoll('${d.id}')">Clôturer</button>`}
-          <button class="light" onclick="sharePoll('${p.question}')">Partager chat</button>
+
+          <button class="light" onclick="sharePoll('${clean(p.question)}')">Partager chat</button>
         </div>
       `;
     });
+
     pollList.innerHTML = html || "<p>Aucun vote</p>";
   });
 }
@@ -803,6 +948,7 @@ async function vote(id,option){
   const p = doc.data();
 
   let votes = (p.votes||[]).filter(v=>v.userId !== user.uid);
+
   votes.push({
     userId:user.uid,
     email:user.email,
@@ -822,6 +968,7 @@ async function closePoll(id){
 
   (p.options||[]).forEach(o=>{
     const count = (p.votes||[]).filter(v=>v.option===o).length;
+
     if(count > max){
       max = count;
       winner = o;
@@ -836,32 +983,6 @@ async function closePoll(id){
 
 async function sharePoll(question){
   await sendMsg("🗳️ " + question, "pollCard");
-}
-
-/* NOTIFS */
-
-function notifs(){
-  appContent.innerHTML = groupHeader() + `
-    <h2>Notifications</h2>
-    <div id="notifList"></div>
-  `;
-
-  db.collection("notifications")
-  .where("groupId","==",group)
-  .onSnapshot(s=>{
-    let html = "";
-    s.docs.sort((a,b)=>b.data().createdAt-a.data().createdAt).forEach(d=>{
-      const n = d.data();
-      html += `
-        <div class="card">
-          <b>${clean(n.title)}</b>
-          <p>${clean(n.text)}</p>
-          <span class="muted">${clean(n.type)}</span>
-        </div>
-      `;
-    });
-    notifList.innerHTML = html || "<p>Aucune notification</p>";
-  });
 }
 </script>
 
